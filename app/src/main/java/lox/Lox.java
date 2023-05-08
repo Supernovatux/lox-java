@@ -1,8 +1,7 @@
 package lox;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.Console;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,15 +25,18 @@ public class Lox {
     // Indicate an error in the exit code.
     if (hadError)
       System.exit(65);
+    if (hadRuntimeError)
+      System.exit(70);
   }
 
   private static void runPrompt() throws IOException {
-    InputStreamReader input = new InputStreamReader(System.in);
-    BufferedReader reader = new BufferedReader(input);
-
-    for (;;) {
-      System.out.print(prompt);
-      String line = reader.readLine();
+    Console console = System.console();
+    if (console == null) {
+      System.err.println("No console.");
+      System.exit(1);
+    }
+    while (true) {
+      String line = console.readLine(prompt);
       if (line == null)
         break;
       run(line);
@@ -51,8 +53,7 @@ public class Lox {
     // Stop if there was a syntax error.
     if (hadError)
       return;
-
-    System.out.println(new AstPrinter().print(expression));
+    interpreter.interpret(expression);
 
   }
 
@@ -76,6 +77,14 @@ public class Lox {
     }
   }
 
+  private static final Interpreter interpreter = new Interpreter();
   static boolean hadError = false;
-  private static String prompt = "> ";
+  static boolean hadRuntimeError = false;
+  private static String prompt = "lox> ";
+
+  static void runtimeError(RuntimeError error) {
+    System.err.println(error.getMessage() +
+        "\n[line " + error.token.line + "]");
+    hadRuntimeError = true;
+  }
 }
