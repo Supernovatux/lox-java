@@ -1,15 +1,6 @@
 package lox;
 
 class Interpreter implements Expr.Visitor<Object> {
-  void interpret(Expr expression) {
-    try {
-      Object value = evaluate(expression);
-      System.out.println(stringify(value));
-    } catch (RuntimeError error) {
-      Lox.runtimeError(error);
-    }
-  }
-
   @Override
   public Object visitLiteralExpr(Expr.Literal expr) {
     return expr.value;
@@ -18,10 +9,6 @@ class Interpreter implements Expr.Visitor<Object> {
   @Override
   public Object visitGroupingExpr(Expr.Grouping expr) {
     return evaluate(expr.expression);
-  }
-
-  private Object evaluate(Expr expr) {
-    return expr.accept(this);
   }
 
   @Override
@@ -40,14 +27,6 @@ class Interpreter implements Expr.Visitor<Object> {
 
     // Unreachable.
     return null;
-  }
-
-  private boolean isTruthy(Object object) {
-    if (object == null)
-      return false;
-    if (object instanceof Boolean)
-      return (boolean) object;
-    return true;
   }
 
   @Override
@@ -104,6 +83,31 @@ class Interpreter implements Expr.Visitor<Object> {
 
     // Unreachable.
     return null;
+  }
+
+  void interpret(Expr expression) {
+    try {
+      Object value = evaluate(expression);
+      if (Lox.getReplIo() != null) {
+        Lox.getReplIo().println(stringify(value));
+      } else {
+        System.out.println(stringify(value));
+      }
+    } catch (RuntimeError error) {
+      Lox.runtimeError(error);
+    }
+  }
+
+  private Object evaluate(Expr expr) {
+    return expr.accept(this);
+  }
+
+  private boolean isTruthy(Object object) {
+    if (object == null)
+      return false;
+    if (object instanceof Boolean)
+      return (boolean) object;
+    return true;
   }
 
   private boolean isEqual(Object a, Object b) {

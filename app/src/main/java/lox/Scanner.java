@@ -1,21 +1,53 @@
 package lox;
 
+import static lox.TokenType.AND;
+import static lox.TokenType.BANG;
+import static lox.TokenType.BANG_EQUAL;
+import static lox.TokenType.CLASS;
+import static lox.TokenType.COMMA;
+import static lox.TokenType.DOT;
+import static lox.TokenType.ELSE;
+import static lox.TokenType.EOF;
+import static lox.TokenType.EQUAL;
+import static lox.TokenType.EQUAL_EQUAL;
+import static lox.TokenType.FALSE;
+import static lox.TokenType.FOR;
+import static lox.TokenType.FUN;
+import static lox.TokenType.GREATER;
+import static lox.TokenType.GREATER_EQUAL;
+import static lox.TokenType.IDENTIFIER;
+import static lox.TokenType.IF;
+import static lox.TokenType.LEFT_BRACE;
+import static lox.TokenType.LEFT_PAREN;
+import static lox.TokenType.LESS;
+import static lox.TokenType.LESS_EQUAL;
+import static lox.TokenType.MINUS;
+import static lox.TokenType.NIL;
+import static lox.TokenType.NUMBER;
+import static lox.TokenType.OR;
+import static lox.TokenType.PLUS;
+import static lox.TokenType.PRINT;
+import static lox.TokenType.RETURN;
+import static lox.TokenType.RIGHT_BRACE;
+import static lox.TokenType.RIGHT_PAREN;
+import static lox.TokenType.SEMICOLON;
+import static lox.TokenType.SLASH;
+import static lox.TokenType.STAR;
+import static lox.TokenType.STRING;
+import static lox.TokenType.SUPER;
+import static lox.TokenType.THIS;
+import static lox.TokenType.TRUE;
+import static lox.TokenType.VAR;
+import static lox.TokenType.WHILE;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
 
-import static lox.TokenType.*;
-
 class Scanner {
-  private final String source;
-  private final List<Token> tokens = new ArrayList<>();
-  private int start = 0;
-  private int current = 0;
-  private int line = 1;
   private static final Map<String, TokenType> keywords;
-
   static {
     keywords = new HashMap<>();
     keywords.put("and", AND);
@@ -35,6 +67,18 @@ class Scanner {
     keywords.put("var", VAR);
     keywords.put("while", WHILE);
   }
+
+  public static Map<String, TokenType> getKeywords() {
+    return keywords;
+  }
+
+  private final String source;
+  private final List<Token> tokens = new ArrayList<>();
+  private int start = 0;
+
+  private int current = 0;
+
+  private int line = 1;
 
   Scanner(String source) {
     this.source = source;
@@ -169,7 +213,7 @@ class Scanner {
 
   private void string() {
     while (peek() != '"' && !isAtEnd()) {
-      //handle escape sequence
+      // handle escape sequence
       if (peek() == '\n')
         line++;
       advance();
@@ -191,7 +235,11 @@ class Scanner {
   private boolean isDigit(char c) {
     return c >= '0' && c <= '9';
   }
-  private boolean isHexDigit(char c) { return ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'));}
+
+  private boolean isHexDigit(char c) {
+    return ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'));
+  }
+
   private boolean isBinaryDigit(char c) {
     return c == '0' || c == '1';
   }
@@ -199,14 +247,15 @@ class Scanner {
   private boolean isOctalDigit(char c) {
     return c >= '0' && c <= '7';
   }
+
   private void number(char prefix) {
     if (prefix == '0') {
       if (peek() == 'x' || peek() == 'X') {
         advance();
         while (isHexDigit(peek()))
           advance();
-        if (start+2 == current) {
-          Lox.error(line,"Invalid hex");
+        if (start + 2 == current) {
+          Lox.error(line, "Invalid hex");
           return;
         }
         long hexVal = Long.parseLong(source.substring(start + 2, current), 16);
@@ -217,8 +266,8 @@ class Scanner {
         advance();
         while (isOctalDigit(peek()))
           advance();
-        if (start+2 == current) {
-          Lox.error(line,"Invalid octal");
+        if (start + 2 == current) {
+          Lox.error(line, "Invalid octal");
           return;
         }
         long octVal = Long.parseLong(source.substring(start + 2, current), 8);
@@ -229,8 +278,8 @@ class Scanner {
         advance();
         while (isBinaryDigit(peek()))
           advance();
-        if (start+2 == current) {
-          Lox.error(line,"Invalid binary");
+        if (start + 2 == current) {
+          Lox.error(line, "Invalid binary");
           return;
         }
         long binVal = Long.parseLong(source.substring(start + 2, current), 2);

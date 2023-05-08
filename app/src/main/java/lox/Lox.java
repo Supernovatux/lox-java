@@ -1,14 +1,27 @@
 package lox;
 
-import java.io.IOException;
 import java.io.Console;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
 public class Lox {
-  public static void main(String[] args) throws IOException {
+  private static final Interpreter interpreter = new Interpreter();
+
+  static boolean hadError = false;
+
+  static boolean hadRuntimeError = false;
+
+  private static String prompt = "lox> ";
+  private static ReplIo replIo;
+
+  public static ReplIo getReplIo() {
+    return replIo;
+  }
+
+  public static void main(final String[] args) throws IOException {
     if (args.length > 1) {
       System.out.println("Usage: jlox [script]");
       System.exit(64);
@@ -19,8 +32,27 @@ public class Lox {
     }
   }
 
-  private static void runFile(String path) throws IOException {
-    byte[] bytes = Files.readAllBytes(Paths.get(path));
+  // The error() method is called when the scanner or parser detects an error.
+  static void error(final int line, final String message) {
+    report(line, "", message);
+  }
+
+  static void error(final Token token, final String message) {
+    if (token.type == TokenType.EOF) {
+      report(token.line, " at end", message);
+    } else {
+      report(token.line, " at '" + token.lexeme + "'", message);
+    }
+  }
+
+  static void runtimeError(final RuntimeError error) {
+    System.err.println(error.getMessage() +
+        "\n[line " + error.token.line + "]");
+    hadRuntimeError = true;
+  }
+
+  private static void runFile(final String path) throws IOException {
+    final byte[] bytes = Files.readAllBytes(Paths.get(path));
     run(new String(bytes, Charset.defaultCharset()));
     // Indicate an error in the exit code.
     if (hadError)
@@ -30,13 +62,10 @@ public class Lox {
   }
 
   private static void runPrompt() throws IOException {
-    Console console = System.console();
-    if (console == null) {
-      System.err.println("No console.");
-      System.exit(1);
-    }
+    replIo = new ReplIo();
+    replIo.setPrompt(prompt);
     while (true) {
-      String line = console.readLine(prompt);
+      final String line = replIo.readLine();
       if (line == null)
         break;
       run(line);
@@ -44,11 +73,11 @@ public class Lox {
     }
   }
 
-  private static void run(String source) {
-    Scanner scanner = new Scanner(source);
-    List<Token> tokens = scanner.scanTokens();
-    Parser parser = new Parser(tokens);
-    Expr expression = parser.parse();
+  private static void run(final String source) {
+    final Scanner scanner = new Scanner(source);
+    final List<Token> tokens = scanner.scanTokens();
+    final Parser parser = new Parser(tokens);
+    final Expr expression = parser.parse();
 
     // Stop if there was a syntax error.
     if (hadError)
@@ -57,34 +86,10 @@ public class Lox {
 
   }
 
-  // The error() method is called when the scanner or parser detects an error.
-  static void error(int line, String message) {
-    report(line, "", message);
-  }
-
-  private static void report(int line, String where,
-      String message) {
+  private static void report(final int line, final String where,
+      final String message) {
     System.err.println(
         "[line " + line + "] Error" + where + ": " + message);
     hadError = true;
-  }
-
-  static void error(Token token, String message) {
-    if (token.type == TokenType.EOF) {
-      report(token.line, " at end", message);
-    } else {
-      report(token.line, " at '" + token.lexeme + "'", message);
-    }
-  }
-
-  private static final Interpreter interpreter = new Interpreter();
-  static boolean hadError = false;
-  static boolean hadRuntimeError = false;
-  private static String prompt = "lox> ";
-
-  static void runtimeError(RuntimeError error) {
-    System.err.println(error.getMessage() +
-        "\n[line " + error.token.line + "]");
-    hadRuntimeError = true;
   }
 }

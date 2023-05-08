@@ -20,14 +20,16 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
 
     // Use Jline for command line interaction.
-    implementation 'jline:jline:2.14.2'
+    implementation 'org.jline:jline:3.22.0'
 }
 
 application {
     // Define the main class for the application.
     mainClass = 'lox.Lox'
 }
-
+run {
+    standardInput = System.in
+}
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
