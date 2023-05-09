@@ -3,13 +3,55 @@
  */
 package lox;
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import java.io.ByteArrayOutputStream;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 
-class AppTest {
-    @Test
-    void appHasAGreeting() {
-        Scanner classUnderTest = new Scanner("+");
-        assertNotNull(classUnderTest.scanTokens());
+public class AppTest {
+    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+    private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+    private final String baseDir = "src/test/resources/";
+
+    protected String[] argGen(String fileName) {
+        return new String[] { baseDir + fileName };
     }
+
+    /**
+     * Turns on stdOut output capture
+     */
+    protected void captureOut() {
+        System.setOut(new PrintStream(outContent));
+    }
+
+    /**
+     * Turns on stdErr output capture
+     */
+    protected void captureErr() {
+        System.setErr(new PrintStream(errContent));
+    }
+
+    /**
+     * Turns off stdOut capture and returns the contents
+     * that have been captured
+     *
+     * @return
+     */
+    protected String getOut() {
+        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+        return outContent.toString().replaceAll("\r", "");
+
+    }
+
+    /**
+     * Turns off stdErr capture and returns the contents
+     * that have been captured
+     *
+     * @return
+     */
+    protected String getErr() {
+        System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+        return errContent.toString().replaceAll("\r", "");
+    }
+
 }
