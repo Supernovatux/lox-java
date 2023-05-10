@@ -132,9 +132,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return (double) left - (double) right;
       case SLASH:
         checkNumberOperands(expr.operator, left, right);
-        if ((double) right == 0) {
-          throw new RuntimeError(expr.operator, "Division by zero.");
-        }
         return (double) left / (double) right;
       case STAR:
         if (left instanceof String && right instanceof Double) {
@@ -150,8 +147,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (left instanceof Double && right instanceof Double) {
           return (double) left + (double) right;
         }
-
-        if (left instanceof String || right instanceof String) {
+        if (left instanceof String && right instanceof String) {
           return (String) left.toString() + (String) right.toString();
         }
         throw new RuntimeError(expr.operator,
@@ -205,6 +201,9 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   private boolean isEqual(Object a, Object b) {
+    if (a instanceof Double && b instanceof Double) {
+      return (double) a == (double) b;
+    }
     if (a == null && b == null)
       return true;
     if (a == null)
