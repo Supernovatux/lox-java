@@ -1,6 +1,6 @@
 package lox;
 
-import java.io.Console;
+import java.awt.*;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -8,28 +8,42 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Lox {
-  private static final Interpreter interpreter = new Interpreter();
+  private static Interpreter interpreter;
 
-  static boolean hadError = false;
+  private static boolean hadError;
 
-  static boolean hadRuntimeError = false;
+  private static boolean hadRuntimeError;
 
   private static String prompt = "lox> ";
   private static ReplIo replIo;
+
+  private static int scriptExitCode;
+  private static boolean debug = false;
+  private static int replExitCode;
 
   public static ReplIo getReplIo() {
     return replIo;
   }
 
   public static void main(final String[] args) throws IOException {
-    if (args.length > 1) {
+    interpreter = new Interpreter();
+    hadError = false;
+    hadRuntimeError = false;
+    if (args.length > 3) {
       System.out.println("Usage: jlox [script]");
       System.exit(64);
+    } else if (args.length == 2 && args[1].equals("--debug")) {
+      debug = true;
+      runFile(args[0]);
     } else if (args.length == 1) {
+      debug = false;
+      scriptExitCode = 65;
+      replExitCode = 70;
       runFile(args[0]);
     } else {
       runPrompt();
     }
+    System.out.flush();
   }
 
   // The error() method is called when the scanner or parser detects an error.
@@ -55,10 +69,15 @@ public class Lox {
     final byte[] bytes = Files.readAllBytes(Paths.get(path));
     run(new String(bytes, Charset.defaultCharset()));
     // Indicate an error in the exit code.
-    if (hadError)
-      System.exit(65);
-    if (hadRuntimeError)
-      System.exit(70);
+    if (debug == true && (hadError || hadRuntimeError)) {
+      return;
+    }
+    if (hadError) {
+      System.exit(scriptExitCode);
+    }
+    if (hadRuntimeError) {
+      System.exit(replExitCode);
+    }
   }
 
   private static void runPrompt() throws IOException {

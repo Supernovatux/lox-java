@@ -7,20 +7,34 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 
-public class AppTest {
-    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-    private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+public class templateClass {
+    private ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+    private ByteArrayOutputStream errContent = new ByteArrayOutputStream();
     private final String baseDir = "src/test/resources/";
 
+    protected String[] argGen(String fileName, Boolean debug) {
+        List<String> args = new ArrayList<>();
+        args.add(baseDir + fileName);
+
+        if (Boolean.TRUE.equals(debug)) {
+            args.add("--debug");
+        }
+
+        return args.toArray(new String[0]);
+    }
+
     protected String[] argGen(String fileName) {
-        return new String[] { baseDir + fileName };
+        return argGen(fileName, false);
     }
 
     /**
      * Turns on stdOut output capture
      */
     protected void captureOut() {
+        outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
     }
 
@@ -28,6 +42,7 @@ public class AppTest {
      * Turns on stdErr output capture
      */
     protected void captureErr() {
+        errContent = new ByteArrayOutputStream();
         System.setErr(new PrintStream(errContent));
     }
 

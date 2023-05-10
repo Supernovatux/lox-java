@@ -1,4 +1,4 @@
-package lox;
+package lox.io;
 
 import java.nio.file.Paths;
 import java.util.List;
@@ -23,8 +23,11 @@ class ReplIo {
   private LineReader reader;
   private AutopairWidgets autopairWidgets;
   private AutosuggestionWidgets autosuggestionWidgets;
-  private Completer completer;
-
+  private DelegateCompleter completer;
+  private static final AggregateCompleter argCompleter = new AggregateCompleter(
+      new StringsCompleter("true", "false", "nil", "and", "class", "else", "for",
+          "fun", "if", "or", "print", "return", "super", "this", "var", "while"),
+      new DirectoriesCompleter(Paths.get("")));
   private String prompt = "lox> ";
 
   ReplIo() {
@@ -32,10 +35,7 @@ class ReplIo {
       terminal = TerminalBuilder.builder()
           .system(true)
           .build();
-      // Add keywords to completer
-      completer = new AggregateCompleter(new StringsCompleter("true", "false", "nil", "and", "class", "else", "for",
-          "fun", "if", "or", "print", "return", "super", "this", "var", "while"),
-          new DirectoriesCompleter(Paths.get("")));
+      completer.setCompleter(argCompleter);
       reader = LineReaderBuilder.builder()
           .terminal(terminal)
           .completer(completer)
@@ -58,7 +58,12 @@ class ReplIo {
   }
 
   public void setCompleter(final Completer completer) {
-    this.completer = completer;
+    this.completer.setCompleter(completer);
+  }
+
+  public void updateCompleter(final List<String> words) {
+    StringsCompleter completer = new StringsCompleter(words);
+    this.completer.setCompleter(new AggregateCompleter(completer, argCompleter));
   }
 
   public String getPrompt() {

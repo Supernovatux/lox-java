@@ -1,9 +1,8 @@
 package lox;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
-class template extends AppTest {
+class template extends templateClass {
   @Test
   public void test() throws Exception {
     captureOut();
